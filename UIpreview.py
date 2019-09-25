@@ -164,28 +164,9 @@ class Ui_PreviewWindow(QWidget):
         self.capture.started.connect(lambda: print("started"))
         self.pushButtonStart.clicked.connect(self.capture.start)
         self.pushButtonPause.clicked.connect(self.capture.stop)
-
-#    def on_click_start(self):
-##        self.timer = QTimer(self)
-##        self.timer.setInterval(int(1000/self.fps))
-##        self.timer.timeout.connect(self.get_frame)
-##        self.timer.start()
-#        
-##        self.image_thread = ImageThread()
-##        self.imaging = True
-##        self.image_thread.finished.connect(self.image_thread.quit)
-##        self.image_thread.signal.connect(self.display_frame)
-##        self.image_thread.imaging.connect(self.imaging)
-##        self.image_thread.start()
-#        
-#        captureThread = QThread(self)
-#        captureThread.start()
     
-#    def get_frame(self):
     def display_frame(self, frame):
-#        print(type(frame))
         dist = self.capture.camera.epc_conn.compute_dist(frame)
-#        grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         x = np.histogram(dist, bins = range(255), density=True)
 #        image = QImage(frame, *frame.shape[1::-1], QImage.Format_RGB888).rgbSwapped()
 #        dcs_image = QImage(frame, *frame.shape[1::-1], QImage.Format_Grayscale8).rgbSwapped()
@@ -235,13 +216,6 @@ class ImageThread(QObject):
     @pyqtSlot()
     def stop(self):
         self.m_timer.stop()
-        
-#    def run(self):
-#        self.m_timer.start(0, self)
-#        while self.imaging:
-#            dcs_img = self.camera.take_image('dcs')
-#            dcs_img = np.reshape(dcs_img, [2*240, 2*320])
-#            self.signal.emit(dcs_img)
         
 class Converter(QObject):
     imageReady = pyqtSignal(ndarray)
