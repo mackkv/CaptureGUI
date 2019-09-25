@@ -170,9 +170,9 @@ class Ui_PreviewWindow(QWidget):
         x = np.histogram(dist, bins = range(255), density=True)
 #        image = QImage(frame, *frame.shape[1::-1], QImage.Format_RGB888).rgbSwapped()
 #        dcs_image = QImage(frame, *frame.shape[1::-1], QImage.Format_Grayscale8).rgbSwapped()
-        dcs_img_pixmap = QImage(frame, *frame.shape[1::-1], QImage.Format_Grayscale8).rgbSwapped()
+        dcs_img_pixmap = QImage(frame, *frame.shape[1::-1], QImage.Format_Grayscale16).rgbSwapped()
         dcs_img_pixmap = QPixmap.fromImage(dcs_img_pixmap)
-        dist_image = QImage(dist, *dist.shape[1::-1], QImage.Format_Grayscale8).rgbSwapped()
+        dist_image = QImage(dist, *dist.shape[1::-1], QImage.Format_RGB16).rgbSwapped()
         dist_img_pixmap = QPixmap.fromImage(dist_image)
         
         self.graphicsViewAmplitude.plot(x[1][1::], x[0], pen=pg.mkPen(width=3, color='r'), clear=True)
