@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PreviewWindow</class>
+ <widget class="QMainWindow" name="PreviewWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1188</width>
+    <height>557</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Preview Window</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QGraphicsView" name="graphicsViewDCS">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>50</y>
+      <width>471</width>
+      <height>391</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QGraphicsView" name="graphicsViewDistance">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>260</y>
+      <width>351</width>
+      <height>221</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QGraphicsView" name="graphicsViewAmplitude">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>10</y>
+      <width>351</width>
+      <height>221</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>849</x>
+      <y>9</y>
+      <width>341</width>
+      <height>301</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Controls</string>
+    </property>
+    <widget class="QWidget" name="gridLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>9</x>
+       <y>19</y>
+       <width>321</width>
+       <height>281</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <property name="horizontalSpacing">
+       <number>2</number>
+      </property>
+      <item row="4" column="1">
+       <widget class="QComboBox" name="comboBoxModFrequency"/>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="labelModFrequency">
+        <property name="text">
+         <string>Modulation Frequency:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="lineEditIntTime"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="labelIntTime">
+        <property name="text">
+         <string>Integration Time:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="labelModType">
+        <property name="text">
+         <string>Modulation Type:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="labelMaxDistance">
+        <property name="text">
+         <string>Maximum Distance [cm]:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="labelMinDistance">
+        <property name="text">
+         <string>Minimum Distance [cm]:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QComboBox" name="comboBoxModType"/>
+      </item>
+      <item row="6" column="1">
+       <widget class="QLineEdit" name="lineEditMinDistance"/>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLineEdit" name="lineEditMaxDistance"/>
+      </item>
+      <item row="7" column="0">
+       <widget class="QPushButton" name="pushButtonStart">
+        <property name="text">
+         <string>Start</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QPushButton" name="pushButtonPause">
+        <property name="text">
+         <string>Pause</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+   <widget class="QComboBox" name="comboBox_2">
+    <property name="geometry">
+     <rect>
+      <x>690</x>
+      <y>230</y>
+      <width>151</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Distance</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Amplitude</string>
+     </property>
+    </item>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1188</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <widget class="QMenu" name="menuAdd_Device">
+     <property name="title">
+      <string>Add Device</string>
+     </property>
+     <addaction name="actionEpc660"/>
+     <addaction name="actionWebcam"/>
+    </widget>
+    <addaction name="separator"/>
+    <addaction name="menuAdd_Device"/>
+    <addaction name="actionLoad_Experiment"/>
+   </widget>
+   <addaction name="menuFile"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionLoad_Experiment">
+   <property name="text">
+    <string>Load Experiment</string>
+   </property>
+  </action>
+  <action name="actionEpc660">
+   <property name="text">
+    <string>Epc660</string>
+   </property>
+  </action>
+  <action name="actionWebcam">
+   <property name="text">
+    <string>Webcam</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
