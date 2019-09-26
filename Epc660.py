@@ -187,16 +187,16 @@ class EpcTcp:
                 p_up = struct.unpack("<h", data_msg[i:i+2])
                 data_up.append(p_up)
         if dtype == "distance":
-            decoded_data = np.reshape(np.array(data_up), (constant.CAM_RESY, constant.CAM_RESX))
+            decoded_data = np.reshape(np.array(data_up), (constant.CAM_RESX, constant.CAM_RESY))
         elif dtype == "distance_custom":
             decoded_data = self.compute_dist(data_up)
         elif dtype == "amplitude":
             decoded_data = self.compute_amplitude(data_up)
         elif dtype == "dcs":
-            decoded_data = np.reshape(np.array(data_up), (4, constant.CAM_RESY, constant.CAM_RESX))
+            decoded_data = np.reshape(np.array(data_up), (4, constant.CAM_RESY, constant.CAM_RESX), order='C')
         elif dtype == "grayscale":
 #            decoded_data = coded_data.decode("ascii")
-            decoded_data = np.reshape(np.array(data_up), (4, constant.CAM_RESY, constant.CAM_RESX))
+            decoded_data = np.reshape(np.array(data_up), (4, constant.CAM_RESX, constant.CAM_RESY))
         elif dtype == "info":
             decoded_data = data_up
         else:
@@ -208,11 +208,11 @@ class EpcTcp:
     def compute_amplitude(self, data):
         raw_max = np.max(data)
         image = (data/raw_max)*constant.MAX_PVALUE
-        image = np.reshape(np.array(image), (constant.CAM_RESY,constant.CAM_RESX))
+        image = np.reshape(np.array(image), (constant.CAM_RESX,constant.CAM_RESY))
         return image
     
-    def compute_dist(self, data):
-        dcs_array = np.reshape(np.array(data), (4, constant.CAM_RESY,constant.CAM_RESX))
+    def compute_distance(self, dcs_array):
+        # dcs_array = np.reshape(np.array(data), (4, constant.CAM_RESX,constant.CAM_RESY))
         f_mod = 12000000 # should be set to getModulationFrequency
         d_offset = 0 # should be set to getOffset
         c = constant.SPEED_OF_LIGHT
@@ -222,8 +222,8 @@ class EpcTcp:
         d_tof = np.nan_to_num(d_tof)
     
         # create "image" with values from 0-255
-        d_img = (d_tof/np.max(d_tof))*constant.MAX_PVALUE
-        return d_img
+        # d_img = (d_tof/np.max(d_tof))*constant.MAX_PVALUE
+        return d_tof
 
 class EpcCam:
     def __init__(self):

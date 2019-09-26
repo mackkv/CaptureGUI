@@ -23,24 +23,40 @@ class Ui_PreviewWindow(QWidget):
         PreviewWindow.resize(1188, 557)
         
         # Set white background and black foreground
-        pg.setConfigOption('background', 'w')
-        pg.setConfigOption('foreground', 'k')
+        pg.setConfigOption('background', 'k')
+        pg.setConfigOption('foreground', 'w')
+        pg.setConfigOptions(imageAxisOrder='col-major')
         
         self.centralwidget = QWidget(PreviewWindow)
         self.centralwidget.setObjectName("centralwidget")
         
 #        self.graphicsViewDCS = QGraphicsView(self.centralwidget)
-        self.graphicsViewDCS = QLabel(self.centralwidget)
+        # self.graphicsViewDCS = QLabel(self.centralwidget)
+        self.graphicsViewDCS = pg.ImageView(self.centralwidget)
+        # self.graphicsViewDCS = pg.ImageItem(self.centralwidget)
         self.graphicsViewDCS.setGeometry(QRect(10, 50, 471, 391))
         self.graphicsViewDCS.setObjectName("graphicsViewDCS")
 #        self.graphicsViewDistance = QGraphicsView(self.centralwidget)
-        self.graphicsViewDistance = QLabel(self.centralwidget)
+        # self.graphicsViewDistance = QLabel(self.centralwidget)
+        self.graphicsViewDistance = pg.ImageView(self.centralwidget)
         self.graphicsViewDistance.setGeometry(QRect(490, 260, 351, 221))
         self.graphicsViewDistance.setObjectName("graphicsViewDistance")
 #        self.graphicsViewAmplitude = QGraphicsView(self.centralwidget)
         self.graphicsViewAmplitude = pg.PlotWidget(self.centralwidget)
         self.graphicsViewAmplitude.setGeometry(QRect(490, 10, 351, 221))
         self.graphicsViewAmplitude.setObjectName("graphicsViewAmplitude")
+
+        self.graphicsViewDCS.show()
+        self.graphicsViewDistance.show()
+        self.graphicsViewAmplitude.show()
+
+        # self.graphicsViewDCS.ui.histogram.hide()
+        self.graphicsViewDCS.ui.roiBtn.hide()
+        self.graphicsViewDCS.ui.menuBtn.hide()
+
+        # self.graphicsViewDistance.ui.histogram.hide()
+        self.graphicsViewDistance.ui.roiBtn.hide()
+        self.graphicsViewDistance.ui.menuBtn.hide()
         
         self.groupBox = QGroupBox(self.centralwidget)
         self.groupBox.setGeometry(QRect(849, 9, 341, 301))
@@ -127,7 +143,8 @@ class Ui_PreviewWindow(QWidget):
 
         self.retranslateUi(PreviewWindow)
         QMetaObject.connectSlotsByName(PreviewWindow)
-        self.graphicsViewAmplitude.setXRange(0, 255, padding=0)
+        # self.graphicsViewAmplitude.setXRange(0, 255, padding=0)
+        self.graphicsViewAmplitude.setYRange(0, 1, padding=0)
         self.init_camera()
 
     def retranslateUi(self, PreviewWindow):
@@ -166,20 +183,15 @@ class Ui_PreviewWindow(QWidget):
         self.pushButtonPause.clicked.connect(self.capture.stop)
     
     def display_frame(self, frame):
-        dist = self.capture.camera.epc_conn.compute_dist(frame)
-        x = np.histogram(dist, bins = range(255), density=True)
-#        image = QImage(frame, *frame.shape[1::-1], QImage.Format_RGB888).rgbSwapped()
-#        dcs_image = QImage(frame, *frame.shape[1::-1], QImage.Format_Grayscale8).rgbSwapped()
-        dcs_img_pixmap = QImage(frame, *frame.shape[1::-1], QImage.Format_Grayscale16).rgbSwapped()
-        dcs_img_pixmap = QPixmap.fromImage(dcs_img_pixmap)
-        dist_image = QImage(dist, *dist.shape[1::-1], QImage.Format_RGB16).rgbSwapped()
-        dist_img_pixmap = QPixmap.fromImage(dist_image)
-        
-        self.graphicsViewAmplitude.plot(x[1][1::], x[0], pen=pg.mkPen(width=3, color='r'), clear=True)
-        self.graphicsViewAmplitude.setYRange(0, 1, padding=0)
-        
-        self.graphicsViewDCS.setPixmap(dcs_img_pixmap)
-        self.graphicsViewDistance.setPixmap(dist_img_pixmap)
+        dist_img = self.capture.camera.epc_conn.compute_distance(frame)
+        x = np.histogram(dist_img, bins = 100, density=True)
+
+        self.graphicsViewAmplitude.plot(x[1][1::], x[0], pen=pg.mkPen(width=3, color='r'), clear =True)
+
+        dcs_img = np.hstack((np.vstack((frame[0,:,:], frame[2,:,:])), np.vstack((frame[1,:,:], frame[3,:,:]))))
+
+        self.graphicsViewDCS.setImage(dcs_img.T)
+        self.graphicsViewDistance.setImage(dist_img.T)
         
     def initUI(self):
         captureThread = QThread(self)
@@ -200,6 +212,8 @@ class ImageThread(QObject):
         self.camera.set_tcp_port(TCP_PORT)
         self.camera.set_tcp_ip(TCP_IP)
         self.m_timer = QBasicTimer()
+        self.camera.set_int_time(4000)
+        self.camera.set_modulation(0)
     
     def timerEvent(self, event):
         if event.timerId() != self.m_timer.timerId():
@@ -237,8 +251,9 @@ class Converter(QObject):
     def process(self, frame):
 #        w, h, _ = frame.shape
 #        rgbImage = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        dcs_img = np.reshape(frame, [2*240, 2*320])
-        self.m_image = dcs_img
+        # dcs_img = np.reshape(frame, [2*240, 2*320])
+        # dcs_image = np.reshape(frame, [2*320, 2*240], order = 'C')
+        self.m_image = frame
 #        self.m_image = QImage(dcs_img, *dcs_img.shape[1::-1], QImage.Format_Grayscale8).rgbSwapped()
 #        self.m_image = QImage(rgbImage.data, h, w, QImage.Format_RGB888)
         self.imageReady.emit(self.m_image)
