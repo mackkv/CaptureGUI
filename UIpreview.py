@@ -51,11 +51,11 @@ class Ui_PreviewWindow(QWidget):
         self.graphicsViewAmplitude.show()
 
         # self.graphicsViewDCS.ui.histogram.hide()
-        self.graphicsViewDCS.ui.roiBtn.hide()
+#        self.graphicsViewDCS.ui.roiBtn.hide()
         self.graphicsViewDCS.ui.menuBtn.hide()
 
         # self.graphicsViewDistance.ui.histogram.hide()
-        self.graphicsViewDistance.ui.roiBtn.hide()
+#        self.graphicsViewDistance.ui.roiBtn.hide()
         self.graphicsViewDistance.ui.menuBtn.hide()
         
         self.groupBox = QGroupBox(self.centralwidget)
@@ -184,7 +184,7 @@ class Ui_PreviewWindow(QWidget):
     
     def display_frame(self, frame):
         dist_img = self.capture.camera.epc_conn.compute_distance(frame)
-        x = np.histogram(dist_img, bins = 100, density=True)
+        x = np.histogram(dist_img, bins = 255, density=True)
 
         self.graphicsViewAmplitude.plot(x[1][1::], x[0], pen=pg.mkPen(width=3, color='r'), clear =True)
 
