@@ -46,6 +46,9 @@ class Ui_PreviewWindow(QMainWindow):
         self.ui.graphicsViewDCS.show()
         self.ui.graphicsViewDistance.show()
         self.ui.graphicsViewAmplitude.show()
+        
+        self.ui.imageTypeSelect.activated[str].connect(self.imageTypeSelection)
+        self.imageType = None
 
         # self.graphicsViewDCS.ui.histogram.hide()
 #        self.ui.graphicsViewDCS.ui.roiBtn.hide()
@@ -60,6 +63,9 @@ class Ui_PreviewWindow(QMainWindow):
         self.ui.actionLoad_Experiment.triggered.connect(self.openExperimentFileDialog)
         self.ui.actionAdd_Save_Path.triggered.connect(self.saveFileDialog)
         self.init_camera()
+    
+    def imageTypeSelection(self, text):
+        self.imageType = text
         
     def openExperimentFileDialog(self):
         options = QFileDialog.Options()
@@ -67,11 +73,8 @@ class Ui_PreviewWindow(QMainWindow):
         fileName, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","All Files (*.yaml)", options=options)
         if fileName:
             print(fileName)
+            self.experiment = True
         
-        self.experiment = True
-#        self.capture.start()
-        
-            
     def saveFileDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
@@ -79,7 +82,6 @@ class Ui_PreviewWindow(QMainWindow):
         if fileName:
             print(fileName)
         
-            
     def getChoice(self):
         items = ("Red","Blue","Green")
         item, okPressed = QInputDialog.getItem(self, "Get item","Color:", items, 0, False)
@@ -94,7 +96,6 @@ class Ui_PreviewWindow(QMainWindow):
 #        d.setWindowModality(ApplicationModal)
         d.exec_()
 	
-
     def init_camera(self):
         self.capture = ImageThread()
         self.converter = Converter()
@@ -114,6 +115,7 @@ class Ui_PreviewWindow(QMainWindow):
 #        x = np.random.normal(size=1000)
 #        y = np.random.normal(size=1000)
 #        pg.plot(x, y, pen=None, symbol='o')
+        
     def processData(self, frame):
         if self.experiment:
             print('save frame, don\'t display')
@@ -121,14 +123,18 @@ class Ui_PreviewWindow(QMainWindow):
             self.displayFrame(frame)
     
     def displayFrame(self, frame):
-        x = np.histogram(frame[4, : , :], bins = 255, density=True)
-
-        self.ui.graphicsViewAmplitude.plot(x[1][1::], x[0], pen=pg.mkPen(width=3, color='r'), clear =True)
-
         dcs_img = np.hstack((np.vstack((frame[0,:,:], frame[2,:,:])), np.vstack((frame[1,:,:], frame[3,:,:]))))
 
         self.ui.graphicsViewDCS.setImage(dcs_img.T)
-        self.ui.graphicsViewDistance.setImage(frame[4,:,:].T)
+        if self.imageType == 'Distance':
+            self.ui.graphicsViewDistance.setImage(frame[4,:,:].T)
+            x = np.histogram(frame[4, : , :], bins = 255, density=True)
+        else:
+            self.ui.graphicsViewDistance.setImage(frame[5,:,:].T)
+            x = np.histogram(frame[5, : , :], bins = 255, density=True)
+            
+        self.ui.graphicsViewAmplitude.plot(x[1][1::], x[0], pen=pg.mkPen(width=3, color='r'), clear =True)     
+        
         
 class ImageThread(QObject):
     frameReady = pyqtSignal('PyQt_PyObject')
@@ -151,7 +157,6 @@ class ImageThread(QObject):
     def timerEvent(self, event):
         if event.timerId() != self.m_timer.timerId():
             return
-        
         dcs_img = self.camera.take_image('dcs')
         self.frameReady.emit(dcs_img)
     
@@ -185,6 +190,11 @@ class Converter(QObject):
         # create "image" with values from 0-255
         # d_img = (d_tof/np.max(d_tof))*constant.MAX_PVALUE
         return d_tof
+    
+    def compute_amplitude(self, frame):
+        raw_max = np.max(frame)
+        amp_tof = np.sqrt((frame[2,:,:]-frame[0,:,:])**2/4 + (frame[3,:,:]-frame[1,:,:])**2/4)
+        return amp_tof
 
     def __init__(self, parent=None):
         super(Converter, self).__init__(parent)
@@ -201,9 +211,10 @@ class Converter(QObject):
             self.m_timer.start(0, self)
 
     def process(self, frame):
-
         dist_img = self.compute_distance(frame)
+        amp_img = self.compute_amplitude(frame)
         frame = np.concatenate((frame, np.reshape(dist_img, (1, 240, 320))), axis=0)
+        frame = np.concatenate((frame, np.reshape(amp_img, (1, 240, 320))), axis=0)
         self.m_image = frame
         self.imageReady.emit(self.m_image)
 
