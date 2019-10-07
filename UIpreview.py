@@ -33,7 +33,7 @@ class Ui_PreviewWindow(QMainWindow):
         self.show()
         
         self.ui.graphicsViewDCS = pg.ImageView(self.centralwidget)
-        self.ui.graphicsViewDCS.setGeometry(QRect(10, 50, 471, 391))
+        self.ui.graphicsViewDCS.setGeometry(QRect(10, 10, 471, 391))
         
         self.ui.graphicsViewDistance = pg.ImageView(self.centralwidget)
         self.ui.graphicsViewDistance.setGeometry(QRect(490, 260, 351, 221))
@@ -55,8 +55,39 @@ class Ui_PreviewWindow(QMainWindow):
 #        
 #        self.ui.graphicsViewAmplitude.setXRange(0, 255, padding=0)
         self.ui.graphicsViewAmplitude.setYRange(0, 1, padding=0)
+        self.ui.actionLoad_Experiment.triggered.connect(self.openFileNameDialog)
+        self.ui.actionAdd_Save_Path.triggered.connect(self.saveFileDialog)
         self.init_camera()
         
+    def openFileNameDialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","All Files (*.yaml)", options=options)
+        if fileName:
+            print(fileName)
+            
+    def saveFileDialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getSaveFileName(self,"QFileDialog.getSaveFileName()","","All Files (*);;Text Files (*.txt)", options=options)
+        if fileName:
+            print(fileName)
+            
+    def getChoice(self):
+        items = ("Red","Blue","Green")
+        item, okPressed = QInputDialog.getItem(self, "Get item","Color:", items, 0, False)
+        if okPressed and item:
+            print(item)
+            
+    def showDialog(self):
+        d = QDialog()
+        b1 = QPushButton("ok",d)
+        b1.move(50,50)
+        d.setWindowTitle("Dialog")
+#        d.setWindowModality(ApplicationModal)
+        d.exec_()
+	
+
     def init_camera(self):
         self.capture = ImageThread()
         self.converter = Converter()
@@ -68,15 +99,16 @@ class Ui_PreviewWindow(QMainWindow):
         self.capture.moveToThread(captureThread)
         self.converter.moveToThread(converterThread)
         self.capture.frameReady.connect(self.converter.processFrame)
-        self.converter.imageReady.connect(self.display_frame)
+        self.converter.imageReady.connect(self.displayFrame)
         self.capture.started.connect(lambda: print("started"))
         self.ui.pushButtonStart.clicked.connect(self.capture.start)
         self.ui.pushButtonPause.clicked.connect(self.capture.stop)
+        self.showDialog()
 #        x = np.random.normal(size=1000)
 #        y = np.random.normal(size=1000)
 #        pg.plot(x, y, pen=None, symbol='o')
     
-    def display_frame(self, frame):
+    def displayFrame(self, frame):
         dist_img = self.capture.camera.epc_conn.compute_distance(frame)
         x = np.histogram(dist_img, bins = 255, density=True)
 
@@ -86,10 +118,6 @@ class Ui_PreviewWindow(QMainWindow):
 
         self.ui.graphicsViewDCS.setImage(dcs_img.T)
         self.ui.graphicsViewDistance.setImage(dist_img.T)
-        
-    def initUI(self):
-        captureThread = QThread(self)
-        captureThread.start()
         
 class ImageThread(QObject):
     frameReady = pyqtSignal('PyQt_PyObject')
@@ -124,6 +152,11 @@ class ImageThread(QObject):
     @pyqtSlot()
     def stop(self):
         self.m_timer.stop()
+        
+class ExperimentThread(QObject):
+    
+    def __init__(self):
+        QThread.__init__(self)
         
 class Converter(QObject):
     imageReady = pyqtSignal(ndarray)

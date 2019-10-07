@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1188</width>
-    <height>557</height>
+    <width>1227</width>
+    <height>553</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>50</y>
+      <y>10</y>
       <width>471</width>
       <height>391</height>
      </rect>
@@ -162,7 +162,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1188</width>
+     <width>1227</width>
      <height>22</height>
     </rect>
    </property>
@@ -174,12 +174,36 @@
      <property name="title">
       <string>Add Device</string>
      </property>
-     <addaction name="actionEpc660"/>
-     <addaction name="actionWebcam"/>
+     <widget class="QMenu" name="menuTransmissometer">
+      <property name="title">
+       <string>Transmissometer</string>
+      </property>
+      <addaction name="actionAC_9"/>
+      <addaction name="actionC_Star_PB_179"/>
+     </widget>
+     <widget class="QMenu" name="menuCamera">
+      <property name="title">
+       <string>Camera</string>
+      </property>
+      <addaction name="actionWebcam_2"/>
+      <addaction name="actionEpc660_2"/>
+      <addaction name="actionAndor_Xyla_5_5"/>
+     </widget>
+     <widget class="QMenu" name="menuOther">
+      <property name="title">
+       <string>Other</string>
+      </property>
+      <addaction name="actionHoloEye_Spatial_Light_Modulator"/>
+     </widget>
+     <addaction name="menuCamera"/>
+     <addaction name="menuTransmissometer"/>
+     <addaction name="actionDispenser"/>
+     <addaction name="menuOther"/>
     </widget>
     <addaction name="separator"/>
     <addaction name="menuAdd_Device"/>
     <addaction name="actionLoad_Experiment"/>
+    <addaction name="actionAdd_Save_Path"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -194,9 +218,44 @@
     <string>Epc660</string>
    </property>
   </action>
-  <action name="actionWebcam">
+  <action name="actionDispenser">
+   <property name="text">
+    <string>Dispenser</string>
+   </property>
+  </action>
+  <action name="actionAC_9">
+   <property name="text">
+    <string>Seabird Scientific AC-9</string>
+   </property>
+  </action>
+  <action name="actionC_Star_PB_179">
+   <property name="text">
+    <string>Seabird Scientific C-Star PB-179</string>
+   </property>
+  </action>
+  <action name="actionEpc660_2">
+   <property name="text">
+    <string>Epc660</string>
+   </property>
+  </action>
+  <action name="actionWebcam_2">
    <property name="text">
     <string>Webcam</string>
+   </property>
+  </action>
+  <action name="actionAndor_Xyla_5_5">
+   <property name="text">
+    <string>Andor Xyla 5.5</string>
+   </property>
+  </action>
+  <action name="actionHoloEye_Spatial_Light_Modulator">
+   <property name="text">
+    <string>HoloEye SLM</string>
+   </property>
+  </action>
+  <action name="actionAdd_Save_Path">
+   <property name="text">
+    <string>Add Save Path</string>
    </property>
   </action>
  </widget>
