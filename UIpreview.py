@@ -19,6 +19,7 @@ import pyqtgraph as pg
 import numpy as np
 from numpy import *
 import os
+import constant
 
 # Load the local directory, will be used to find .ui files
 LOCAL_DIR = os.path.dirname(os.path.realpath(__file__)) + "/"
@@ -30,6 +31,7 @@ class Ui_PreviewWindow(QMainWindow):
         pg.setConfigOption('foreground', 'w')
         pg.setConfigOptions(imageAxisOrder='col-major')
         self.ui = uic.loadUi(LOCAL_DIR + "preview.ui", self)
+        self.experiment = False
         self.show()
         
         self.ui.graphicsViewDCS = pg.ImageView(self.centralwidget)
@@ -55,16 +57,20 @@ class Ui_PreviewWindow(QMainWindow):
 #        
 #        self.ui.graphicsViewAmplitude.setXRange(0, 255, padding=0)
         self.ui.graphicsViewAmplitude.setYRange(0, 1, padding=0)
-        self.ui.actionLoad_Experiment.triggered.connect(self.openFileNameDialog)
+        self.ui.actionLoad_Experiment.triggered.connect(self.openExperimentFileDialog)
         self.ui.actionAdd_Save_Path.triggered.connect(self.saveFileDialog)
         self.init_camera()
         
-    def openFileNameDialog(self):
+    def openExperimentFileDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","All Files (*.yaml)", options=options)
         if fileName:
             print(fileName)
+        
+        self.experiment = True
+#        self.capture.start()
+        
             
     def saveFileDialog(self):
         options = QFileDialog.Options()
@@ -72,6 +78,7 @@ class Ui_PreviewWindow(QMainWindow):
         fileName, _ = QFileDialog.getSaveFileName(self,"QFileDialog.getSaveFileName()","","All Files (*);;Text Files (*.txt)", options=options)
         if fileName:
             print(fileName)
+        
             
     def getChoice(self):
         items = ("Red","Blue","Green")
@@ -99,7 +106,7 @@ class Ui_PreviewWindow(QMainWindow):
         self.capture.moveToThread(captureThread)
         self.converter.moveToThread(converterThread)
         self.capture.frameReady.connect(self.converter.processFrame)
-        self.converter.imageReady.connect(self.displayFrame)
+        self.converter.imageReady.connect(self.processData)
         self.capture.started.connect(lambda: print("started"))
         self.ui.pushButtonStart.clicked.connect(self.capture.start)
         self.ui.pushButtonPause.clicked.connect(self.capture.stop)
@@ -107,17 +114,21 @@ class Ui_PreviewWindow(QMainWindow):
 #        x = np.random.normal(size=1000)
 #        y = np.random.normal(size=1000)
 #        pg.plot(x, y, pen=None, symbol='o')
+    def processData(self, frame):
+        if self.experiment:
+            print('save frame, don\'t display')
+        else:
+            self.displayFrame(frame)
     
     def displayFrame(self, frame):
-        dist_img = self.capture.camera.epc_conn.compute_distance(frame)
-        x = np.histogram(dist_img, bins = 255, density=True)
+        x = np.histogram(frame[4, : , :], bins = 255, density=True)
 
         self.ui.graphicsViewAmplitude.plot(x[1][1::], x[0], pen=pg.mkPen(width=3, color='r'), clear =True)
 
         dcs_img = np.hstack((np.vstack((frame[0,:,:], frame[2,:,:])), np.vstack((frame[1,:,:], frame[3,:,:]))))
 
         self.ui.graphicsViewDCS.setImage(dcs_img.T)
-        self.ui.graphicsViewDistance.setImage(dist_img.T)
+        self.ui.graphicsViewDistance.setImage(frame[4,:,:].T)
         
 class ImageThread(QObject):
     frameReady = pyqtSignal('PyQt_PyObject')
@@ -134,7 +145,7 @@ class ImageThread(QObject):
         self.camera.set_tcp_port(TCP_PORT)
         self.camera.set_tcp_ip(TCP_IP)
         self.m_timer = QBasicTimer()
-        self.camera.set_int_time(4000)
+        self.camera.set_int_time(2000)
         self.camera.set_modulation(0)
     
     def timerEvent(self, event):
@@ -160,6 +171,20 @@ class ExperimentThread(QObject):
         
 class Converter(QObject):
     imageReady = pyqtSignal(ndarray)
+    
+    def compute_distance(self, dcs_array):
+        # dcs_array = np.reshape(np.array(data), (4, constant.CAM_RESX,constant.CAM_RESY))
+        f_mod = 12000000 # should be set to getModulationFrequency
+        d_offset = 0 # should be set to getOffset
+        c = constant.SPEED_OF_LIGHT
+        d_tof = (c/2)*(1/(2*np.pi*f_mod))*(np.pi+np.arctan2((dcs_array[3,:,:] - dcs_array[1,:,:]),(dcs_array[2,:,:]-dcs_array[0,:,:]))) + d_offset
+        
+        # Replace NaN's with 0's
+        d_tof = np.nan_to_num(d_tof)
+    
+        # create "image" with values from 0-255
+        # d_img = (d_tof/np.max(d_tof))*constant.MAX_PVALUE
+        return d_tof
 
     def __init__(self, parent=None):
         super(Converter, self).__init__(parent)
@@ -176,13 +201,10 @@ class Converter(QObject):
             self.m_timer.start(0, self)
 
     def process(self, frame):
-#        w, h, _ = frame.shape
-#        rgbImage = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        # dcs_img = np.reshape(frame, [2*240, 2*320])
-        # dcs_image = np.reshape(frame, [2*320, 2*240], order = 'C')
+
+        dist_img = self.compute_distance(frame)
+        frame = np.concatenate((frame, np.reshape(dist_img, (1, 240, 320))), axis=0)
         self.m_image = frame
-#        self.m_image = QImage(dcs_img, *dcs_img.shape[1::-1], QImage.Format_Grayscale8).rgbSwapped()
-#        self.m_image = QImage(rgbImage.data, h, w, QImage.Format_RGB888)
         self.imageReady.emit(self.m_image)
 
     def timerEvent(self, event):
