@@ -1,0 +1,7 @@
+{
+    "HOST": "192.168.7.2",
+    "PORT": 50660,
+    "RATE": 8096,
+    "SERVER_QUEUE_SIZE": 64,
+    "SOCKET_AMOUNT": 200
+}

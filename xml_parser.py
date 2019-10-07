@@ -44,4 +44,4 @@ xmlfile = r'epc660_settings_default.xml'
 root = parseXML(xmlfile)
 for item in root.findall("."):
     for items in item:
-        print(items.tag, items.find('.'))
+        print(items.tag)

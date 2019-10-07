@@ -1,0 +1,9 @@
+--- 
+# Arrays
+# in flow style...
+variables: [frequency, distance, turbidity]
+
+
+- {frequency: [24000000]}
+- {distance : ['D0', 'D1']}
+- {turbidity: ['T0', 'T1', 'T2', 'T3']}

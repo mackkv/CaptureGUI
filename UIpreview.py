@@ -10,161 +10,52 @@
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from PyQt5 import QtWidgets
+from PyQt5 import uic
 from Epc660 import *
 import cv2
 import time
 import pyqtgraph as pg
 import numpy as np
 from numpy import *
+import os
 
-class Ui_PreviewWindow(QWidget):
+# Load the local directory, will be used to find .ui files
+LOCAL_DIR = os.path.dirname(os.path.realpath(__file__)) + "/"
+
+class Ui_PreviewWindow(QMainWindow):
     def setupUi(self, PreviewWindow, camera_index=0, fps=30):
-        PreviewWindow.setObjectName("PreviewWindow")
-        PreviewWindow.resize(1188, 557)
-        
         # Set white background and black foreground
         pg.setConfigOption('background', 'k')
         pg.setConfigOption('foreground', 'w')
         pg.setConfigOptions(imageAxisOrder='col-major')
+        self.ui = uic.loadUi(LOCAL_DIR + "preview.ui", self)
+        self.show()
         
-        self.centralwidget = QWidget(PreviewWindow)
-        self.centralwidget.setObjectName("centralwidget")
+        self.ui.graphicsViewDCS = pg.ImageView(self.centralwidget)
+        self.ui.graphicsViewDCS.setGeometry(QRect(10, 50, 471, 391))
         
-#        self.graphicsViewDCS = QGraphicsView(self.centralwidget)
-        # self.graphicsViewDCS = QLabel(self.centralwidget)
-        self.graphicsViewDCS = pg.ImageView(self.centralwidget)
-        # self.graphicsViewDCS = pg.ImageItem(self.centralwidget)
-        self.graphicsViewDCS.setGeometry(QRect(10, 50, 471, 391))
-        self.graphicsViewDCS.setObjectName("graphicsViewDCS")
-#        self.graphicsViewDistance = QGraphicsView(self.centralwidget)
-        # self.graphicsViewDistance = QLabel(self.centralwidget)
-        self.graphicsViewDistance = pg.ImageView(self.centralwidget)
-        self.graphicsViewDistance.setGeometry(QRect(490, 260, 351, 221))
-        self.graphicsViewDistance.setObjectName("graphicsViewDistance")
-#        self.graphicsViewAmplitude = QGraphicsView(self.centralwidget)
-        self.graphicsViewAmplitude = pg.PlotWidget(self.centralwidget)
-        self.graphicsViewAmplitude.setGeometry(QRect(490, 10, 351, 221))
-        self.graphicsViewAmplitude.setObjectName("graphicsViewAmplitude")
-
-        self.graphicsViewDCS.show()
-        self.graphicsViewDistance.show()
-        self.graphicsViewAmplitude.show()
+        self.ui.graphicsViewDistance = pg.ImageView(self.centralwidget)
+        self.ui.graphicsViewDistance.setGeometry(QRect(490, 260, 351, 221))
+        
+        self.ui.graphicsViewAmplitude = pg.PlotWidget(self.centralwidget)
+        self.ui.graphicsViewAmplitude.setGeometry(QRect(490, 10, 351, 221))
+#
+        self.ui.graphicsViewDCS.show()
+        self.ui.graphicsViewDistance.show()
+        self.ui.graphicsViewAmplitude.show()
 
         # self.graphicsViewDCS.ui.histogram.hide()
-#        self.graphicsViewDCS.ui.roiBtn.hide()
-        self.graphicsViewDCS.ui.menuBtn.hide()
+#        self.ui.graphicsViewDCS.ui.roiBtn.hide()
+        self.ui.graphicsViewDCS.ui.menuBtn.hide()
 
         # self.graphicsViewDistance.ui.histogram.hide()
-#        self.graphicsViewDistance.ui.roiBtn.hide()
-        self.graphicsViewDistance.ui.menuBtn.hide()
-        
-        self.groupBox = QGroupBox(self.centralwidget)
-        self.groupBox.setGeometry(QRect(849, 9, 341, 301))
-        self.groupBox.setObjectName("groupBox")
-        self.gridLayoutWidget = QWidget(self.groupBox)
-        self.gridLayoutWidget.setGeometry(QRect(9, 19, 321, 281))
-        self.gridLayoutWidget.setObjectName("gridLayoutWidget")
-        self.gridLayout = QGridLayout(self.gridLayoutWidget)
-        self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        self.gridLayout.setHorizontalSpacing(2)
-        self.gridLayout.setObjectName("gridLayout")
-        
-        self.comboBoxModFrequency = QComboBox(self.gridLayoutWidget)
-        self.comboBoxModFrequency.setObjectName("comboBoxModFrequency")
-        self.gridLayout.addWidget(self.comboBoxModFrequency, 4, 1, 1, 1)
-        self.labelModFrequency = QLabel(self.gridLayoutWidget)
-        self.labelModFrequency.setObjectName("labelModFrequency")
-        self.gridLayout.addWidget(self.labelModFrequency, 4, 0, 1, 1)
-        self.lineEditIntTime = QLineEdit(self.gridLayoutWidget)
-        self.lineEditIntTime.setObjectName("lineEditIntTime")
-        self.gridLayout.addWidget(self.lineEditIntTime, 2, 1, 1, 1)
-        self.labelIntTime = QLabel(self.gridLayoutWidget)
-        self.labelIntTime.setObjectName("labelIntTime")
-        self.gridLayout.addWidget(self.labelIntTime, 2, 0, 1, 1)
-        self.labelModType = QLabel(self.gridLayoutWidget)
-        self.labelModType.setObjectName("labelModType")
-        self.gridLayout.addWidget(self.labelModType, 3, 0, 1, 1)
-        self.labelMaxDistance = QLabel(self.gridLayoutWidget)
-        self.labelMaxDistance.setObjectName("labelMaxDistance")
-        self.gridLayout.addWidget(self.labelMaxDistance, 5, 0, 1, 1)
-        self.labelMinDistance = QLabel(self.gridLayoutWidget)
-        self.labelMinDistance.setObjectName("labelMinDistance")
-        self.gridLayout.addWidget(self.labelMinDistance, 6, 0, 1, 1)
-        self.comboBoxModType = QComboBox(self.gridLayoutWidget)
-        self.comboBoxModType.setObjectName("comboBoxModType")
-        self.gridLayout.addWidget(self.comboBoxModType, 3, 1, 1, 1)
-        self.lineEditMinDistance = QLineEdit(self.gridLayoutWidget)
-        self.lineEditMinDistance.setObjectName("lineEditMinDistance")
-        self.gridLayout.addWidget(self.lineEditMinDistance, 6, 1, 1, 1)
-        self.lineEditMaxDistance = QLineEdit(self.gridLayoutWidget)
-        self.lineEditMaxDistance.setObjectName("lineEditMaxDistance")
-        self.gridLayout.addWidget(self.lineEditMaxDistance, 5, 1, 1, 1)
-        
-        # Buttons
-        self.pushButtonStart = QPushButton(self.gridLayoutWidget)
-        self.pushButtonStart.setObjectName("pushButtonStart")
-        self.gridLayout.addWidget(self.pushButtonStart, 7, 0, 1, 1)
-#        self.pushButtonStart.clicked.connect(self.on_click_start, fps)
-        
-        self.pushButtonPause = QPushButton(self.gridLayoutWidget)
-        self.pushButtonPause.setObjectName("pushButtonPause")
-#        self.pushButtonPause.clicked.connect(self.on_click_pause)
-        self.gridLayout.addWidget(self.pushButtonPause, 7, 1, 1, 1)
-        
-        self.comboBox_2 = QComboBox(self.centralwidget)
-        self.comboBox_2.setGeometry(QRect(690, 230, 151, 25))
-        self.comboBox_2.setObjectName("comboBox_2")
-        self.comboBox_2.addItem("")
-        self.comboBox_2.addItem("")
-        PreviewWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QMenuBar(PreviewWindow)
-        self.menubar.setGeometry(QRect(0, 0, 1188, 22))
-        self.menubar.setObjectName("menubar")
-        self.menuFile = QMenu(self.menubar)
-        self.menuFile.setObjectName("menuFile")
-        self.menuAdd_Device = QMenu(self.menuFile)
-        self.menuAdd_Device.setObjectName("menuAdd_Device")
-        PreviewWindow.setMenuBar(self.menubar)
-        self.statusbar = QStatusBar(PreviewWindow)
-        self.statusbar.setObjectName("statusbar")
-        PreviewWindow.setStatusBar(self.statusbar)
-        self.actionLoad_Experiment = QAction(PreviewWindow)
-        self.actionLoad_Experiment.setObjectName("actionLoad_Experiment")
-        self.actionEpc660 = QAction(PreviewWindow)
-        self.actionEpc660.setObjectName("actionEpc660")
-        self.actionWebcam = QAction(PreviewWindow)
-        self.actionWebcam.setObjectName("actionWebcam")
-        self.menuAdd_Device.addAction(self.actionEpc660)
-        self.menuAdd_Device.addAction(self.actionWebcam)
-        self.menuFile.addSeparator()
-        self.menuFile.addAction(self.menuAdd_Device.menuAction())
-        self.menuFile.addAction(self.actionLoad_Experiment)
-        self.menubar.addAction(self.menuFile.menuAction())
-
-        self.retranslateUi(PreviewWindow)
-        QMetaObject.connectSlotsByName(PreviewWindow)
-        # self.graphicsViewAmplitude.setXRange(0, 255, padding=0)
-        self.graphicsViewAmplitude.setYRange(0, 1, padding=0)
+#        self.ui.graphicsViewDistance.ui.roiBtn.hide()
+        self.ui.graphicsViewDistance.ui.menuBtn.hide()
+#        
+#        self.ui.graphicsViewAmplitude.setXRange(0, 255, padding=0)
+        self.ui.graphicsViewAmplitude.setYRange(0, 1, padding=0)
         self.init_camera()
-
-    def retranslateUi(self, PreviewWindow):
-        _translate = QCoreApplication.translate
-        PreviewWindow.setWindowTitle(_translate("PreviewWindow", "Preview Window"))
-        self.groupBox.setTitle(_translate("PreviewWindow", "Controls"))
-        self.labelModFrequency.setText(_translate("PreviewWindow", "Modulation Frequency:"))
-        self.labelIntTime.setText(_translate("PreviewWindow", "Integration Time:"))
-        self.labelModType.setText(_translate("PreviewWindow", "Modulation Type:"))
-        self.labelMaxDistance.setText(_translate("PreviewWindow", "Maximum Distance [cm]:"))
-        self.labelMinDistance.setText(_translate("PreviewWindow", "Minimum Distance [cm]:"))
-        self.pushButtonStart.setText(_translate("PreviewWindow", "Start"))
-        self.pushButtonPause.setText(_translate("PreviewWindow", "Pause"))
-        self.comboBox_2.setItemText(0, _translate("PreviewWindow", "Distance"))
-        self.comboBox_2.setItemText(1, _translate("PreviewWindow", "Amplitude"))
-        self.menuFile.setTitle(_translate("PreviewWindow", "File"))
-        self.menuAdd_Device.setTitle(_translate("PreviewWindow", "Add Device"))
-        self.actionLoad_Experiment.setText(_translate("PreviewWindow", "Load Experiment"))
-        self.actionEpc660.setText(_translate("PreviewWindow", "Epc660"))
-        self.actionWebcam.setText(_translate("PreviewWindow", "Webcam"))
         
     def init_camera(self):
         self.capture = ImageThread()
@@ -179,19 +70,22 @@ class Ui_PreviewWindow(QWidget):
         self.capture.frameReady.connect(self.converter.processFrame)
         self.converter.imageReady.connect(self.display_frame)
         self.capture.started.connect(lambda: print("started"))
-        self.pushButtonStart.clicked.connect(self.capture.start)
-        self.pushButtonPause.clicked.connect(self.capture.stop)
+        self.ui.pushButtonStart.clicked.connect(self.capture.start)
+        self.ui.pushButtonPause.clicked.connect(self.capture.stop)
+#        x = np.random.normal(size=1000)
+#        y = np.random.normal(size=1000)
+#        pg.plot(x, y, pen=None, symbol='o')
     
     def display_frame(self, frame):
         dist_img = self.capture.camera.epc_conn.compute_distance(frame)
         x = np.histogram(dist_img, bins = 255, density=True)
 
-        self.graphicsViewAmplitude.plot(x[1][1::], x[0], pen=pg.mkPen(width=3, color='r'), clear =True)
+        self.ui.graphicsViewAmplitude.plot(x[1][1::], x[0], pen=pg.mkPen(width=3, color='r'), clear =True)
 
         dcs_img = np.hstack((np.vstack((frame[0,:,:], frame[2,:,:])), np.vstack((frame[1,:,:], frame[3,:,:]))))
 
-        self.graphicsViewDCS.setImage(dcs_img.T)
-        self.graphicsViewDistance.setImage(dist_img.T)
+        self.ui.graphicsViewDCS.setImage(dcs_img.T)
+        self.ui.graphicsViewDistance.setImage(dist_img.T)
         
     def initUI(self):
         captureThread = QThread(self)
@@ -291,9 +185,8 @@ class Converter(QObject):
 
 if __name__ == "__main__":
     import sys
-    app = QApplication(sys.argv)
+    app = QtWidgets.QApplication([])
     PreviewWindow = QMainWindow()
     ui = Ui_PreviewWindow()
     ui.setupUi(PreviewWindow)
-    PreviewWindow.show()
     sys.exit(app.exec_())

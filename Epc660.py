@@ -10,6 +10,7 @@ import numpy as np
 import cv2
 import constant
 import datetime
+import base64
 #import pcl
 
 class Experiment:
@@ -179,6 +180,15 @@ class EpcTcp:
         print(hex_data)
         return hex_data
     
+    def decode_data3(self, coded_data, dtype):
+        hex_data = []
+        for data_msg in coded_data:
+#            hex_data.append(struct.unpack('hhl', data_msg))
+        
+            print("PRINTING DECODED DATA: " + "\n")
+            print(data_msg)
+        return hex_data
+    
     def decode_data(self, coded_data, dtype):
         data_up = []
         for data_msg in coded_data:
@@ -243,6 +253,12 @@ class EpcCam:
     
     def get_dev_address(self):
         return self.device_address
+    
+    def get_offset(self):
+        command = constant.CMD_GET_OFFSET
+        coded_data = self.epc_conn.send_and_recv(command, buffer = self.buffer_size)
+        offset = self.epc_conn.decode_data(coded_data, "info")
+        return offset
     
     def load_config(self, config_filename):
         command = constant.CMD_LOAD_CONFIG
@@ -347,6 +363,13 @@ class EpcCam:
         coded_data = self.epc_conn.send_and_recv(command, buffer = self.buffer_size, parameters = mod)
         decoded_data = self.epc_conn.decode_data(coded_data, "info")
         return decoded_data
+    
+    def select_mode(self, mode):
+        command = constant.CMD_SELECT_MODE
+        self.setup_epctcp()
+        coded_data = self.epc_conn.send_and_recv(command, buffer = self.buffer_size, parameters = mode)
+        decoded_data = self.epc_conn.decode_data(coded_data, "info")
+        return decoded_data
         
     def set_int_time(self, t_int):
         command = "setIntegrationTime3D"
@@ -391,6 +414,25 @@ class EpcCam:
         decoded_data = self.epc_conn.decode_data(coded_data,itype)
         return decoded_data
     
+    def take_video(self, itype, duration=1000):
+        self.epc_conn = EpcTcp()
+        self.epc_conn.connect(self.tcp_ip, self.tcp_port)
+        
+#        if itype == "distance":
+#            command = "getDistanceSorted"
+#        elif itype == "amplitude":
+#            command = "getAmplitudeSorted"
+#        elif itype == "dcs":
+#            command = "getDCSSorted"
+#        elif itype == "grayscale":
+#            command = "getBWSorted"
+#        else:
+#            print("E: Image Type Not Recognized")
+        command = 'startVideo'
+        coded_data = self.epc_conn.send_and_recv(command, buffer = self.buffer_size)
+        decoded_data = self.epc_conn.decode_data(coded_data, itype)
+        return decoded_data
+    
     def rotate_image(self, img, deg):
         # rotate image 
         n = (deg/90)
@@ -403,13 +445,6 @@ class EpcCam:
     def remove_lens_distortion(self, img):
         corrected_img = []
         return corrected_img
-    
-    def view_image(self, img, itype):
-        if(np.max(img) > constant.MAX_PVALUE):
-            raw_max = np.max(img)
-            img = (img/raw_max)*constant.MAX_PVALUE
-        cv2.imshow(itype + " image", np.uint8(img))
-        cv2.waitKey(1)
         
     def save_image(self, img, iname):
         cv2.imwrite(iname + '.png',img)
@@ -449,16 +484,16 @@ if __name__ == "__main__":
     itype = "distance"
     config_filename = " /config/epc660_settings_default.xml"
     config_filename = " 1"
-    
+    ver = cam.get_ic_version()
     config_set = cam.load_config(config_filename)
-    
-    #img = np.zeros((num_frames,240,320))
-    for cap in range(num_frames):
-        img = cam.take_image(itype)
-        img = cam.rotate_image(img, 180)
-        img = cam.flip_image(img)
-        cv2.imshow(itype, img)
-#        img = cv2.applyColorMap(np.uint8(img), cv2.COLORMAP_RAINBOW)
-#        cv2.imshow(itype + " image", np.uint8(img))
-#        int_time1 = cam.get_int_time()
-        cv2.waitKey(1)
+    mode_set = cam.select_mode(0)
+#    #img = np.zeros((num_frames,240,320))
+#    for cap in range(num_frames):
+#        img = cam.take_image(itype)
+#        img = cam.rotate_image(img, 180)
+#        img = cam.flip_image(img)
+#        cv2.imshow(itype, img)
+##        img = cv2.applyColorMap(np.uint8(img), cv2.COLORMAP_RAINBOW)
+##        cv2.imshow(itype + " image", np.uint8(img))
+##        int_time1 = cam.get_int_time()
+#        cv2.waitKey(1)
