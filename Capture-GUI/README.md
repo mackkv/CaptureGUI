@@ -1,6 +1,6 @@
 # CaptureGUI
 
-This program is designed to be used to capture and store data for an underwater (UW) LiDAR system at Clarkson University, Potsdam, NY. The software allows for a GUI to control various types of hardware, including camera systems, transmissometers, laser systems, etc. A full list of supported hardware is listed here:  
+This program is designed to be used to capture and store data for an underwater (UW) LiDAR system at Clarkson University, Potsdam, NY. The software allows for a GUI to control various types of hardware, including camera systems, transmissometers, laser systems, etc. The full list of supported hardware is here:  
  
 - Espros Epc660 time-of-flight (ToF) camera
 - Andor Zyla 5.5 sCMOS RGB camera
