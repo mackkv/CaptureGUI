@@ -10,6 +10,6 @@ This program is designed to be used to capture and store data for an underwater 
 - Custom turbid material dispenser
 - Custom stepper motor control target track
 
-The software uses PyQt5 to handle UI events, while sampling and control of hardware devices is done in background threads. Ane example of the software in use with the Espros Epc660 ToF camera is given here:  
+The software uses PyQt5 to handle UI events, while sampling and control of hardware devices is done in background threads. An example of the software in use with the Espros Epc660 ToF camera is given here:  
 
 ![gui](gui_gif.gif)
