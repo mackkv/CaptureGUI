@@ -7,8 +7,8 @@ This program is designed to be used to capture and store data for an underwater 
 - HoloEye spatial light modulator (SLM)
 - Seabird Scientific AC-S transmissometer
 - Seabird Scientific AC-9 transmissometer
-- Custom turbid material dispenser
-- Custom stepper motor control target track
+- Custom turbid water dispenser (dispenses slightly diluted antacid material for increasing the turbidity of the water)
+- Custom stepper motor control target track (for one dimension of target motion control)
 
 The software uses PyQt5 to handle UI events, while sampling and control of hardware devices is done in background threads. An example of the software in use with the Espros Epc660 ToF camera is given here:  
 
